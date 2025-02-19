@@ -23,7 +23,7 @@ pipeline {
 
         stage('Static Code Analysis') {
             environment {
-                SONAR_URL = "http://localhost:9000"
+                SONAR_URL = "http://18.209.36.43:9000/"
             }
 
             steps {
@@ -62,7 +62,7 @@ pipeline {
             steps{
                 echo "Updating Kubernetes Deployment File"
                 script {
-                    withCredentials([string(credentialsId: 'github_private_token', variable: 'GITHUB_PRIVATE_TOKEN')]) {
+                    withCredentials([string(credentialsId: 'Github', variable: 'GITHUB_PRIVATE_TOKEN')]) {
                     sh '''
                        git config user.email ${GIT_USER_EMAIL}
                        git config user.name ${GIT_USER_NAME}
@@ -70,7 +70,7 @@ pipeline {
                        sed -i "s/replaceimagetag/${BUILD_NUMBER}/g" springboot-java-app/springboot-java-manifests/deployment.yaml
                        git add springboot-java-app/springboot-java-manifests/deployment.yaml
                        git commit -m "Updated Deployment File with new image tag ${BUILD_NUMBER}"
-                       git push https://${GITHUB_PRIVATE_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git HEAD:main
+                       git push https://${GITHUB_PRIVATE_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                       '''
                     }
                 }
