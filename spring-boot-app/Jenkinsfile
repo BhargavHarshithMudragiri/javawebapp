@@ -1,0 +1,80 @@
+pipeline {
+    agent {
+        docker {
+            image 'abhishekf5/maven-abhishek-docker-agent:v1'
+            args '--user root -v /var/run/docker.sock:/var/run/docker.sock' //mount docker socket to access the host's docker daemon
+        }
+    }
+
+    stages {
+        stage('Code Checkout') {
+            steps {
+                echo 'Checkingout Code From SCM'
+                git branch: 'main', url: 'https://github.com/BhargavHarshithMudragiri/sprintboot-java-app.git'
+            }
+        }
+
+        stage('Maven Build Artifact') {
+            steps {
+                echo 'Building Artifact Using Maven'
+                sh 'cd springboot-java-app/spring-boot-app && mvn clean package'
+            }
+        }
+
+        stage('Static Code Analysis') {
+            environment {
+                SONAR_URL = "http://localhost:9000"
+            }
+
+            steps {
+                echo 'Running Code Analysis'
+                withCredentials([string(credentialsId: 'sonarqube', variable: 'SONARQUBE_TOKEN')]) {
+                    sh 'cd springboot-java-app/spring-boot-app && mvn sonar:sonar -Dsonar.host.url=${SONAR_URL} -Dsonar.login=${SONARQUBE_TOKEN}'
+                }
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            environment {
+                DOCKER_IMAGE = "bhargavharshith/springboot-java-app:${BUILD_NUMBER}"
+                REGISTRY_CREDENTIALS = credentials('DockerHub')
+            }
+
+            steps {
+                echo 'Building Docker Image'
+                sh 'cd springboot-java-app/spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
+                def dockerImage = docker.image("${DOCKER_IMAGE}")
+                docker.withRegistry('https://index.docker.io/v1/', 'DockerHub') {
+                    echo 'Pushing Docker Image to DockerHub'
+                    dockerImage.push()
+                }
+                
+            }
+        }
+
+        stage('Update Kubernetes Deployment File') {
+            environment {
+                GIT_REPO_NAME = "sprintboot-java-app"
+                GIT_USER_NAME = "BhargavHarshithMudragiri"
+                GIT_USER_EMAIL = "mudragiribhargavharshith26@gmail.com"
+            }
+
+            steps{
+                echo "Updating Kubernetes Deployment File"
+                script {
+                    withCredentials([string(credentialsId: 'github_private_token', variable: 'GITHUB_PRIVATE_TOKEN')]) {
+                    sh '''
+                       git config user.email ${GIT_USER_EMAIL}
+                       git config user.name ${GIT_USER_NAME}
+                       BUILD_NUMBER = ${BUILD_NUMBER}
+                       sed -i "s/replaceimagetag/${BUILD_NUMBER}/g" springboot-java-app/springboot-java-manifests/deployment.yaml
+                       git add springboot-java-app/springboot-java-manifests/deployment.yaml
+                       git commit -m "Updated Deployment File with new image tag ${BUILD_NUMBER}"
+                       git push https://${GITHUB_PRIVATE_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git HEAD:main
+                      '''
+                    }
+                }
+            }
+        }
+    }
+}
