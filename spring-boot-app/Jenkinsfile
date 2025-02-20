@@ -7,13 +7,6 @@ pipeline {
     }
 
     stages {
-        stage('Code Checkout') {
-            steps {
-                echo 'Checkingout Code From SCM'
-                git branch: 'main', url: 'https://github.com/BhargavHarshithMudragiri/sprintboot-java-app.git'
-            }
-        }
-
         stage('Maven Build Artifact') {
             steps {
                 echo 'Building Artifact Using Maven'
