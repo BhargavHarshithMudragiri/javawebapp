@@ -44,8 +44,8 @@ pipeline {
                 echo 'Building Docker Image'
                 sh 'cd springboot-java-app/spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
                 def dockerImage = docker.image("${DOCKER_IMAGE}")
-                docker.withRegistry('https://index.docker.io/v1/', 'DockerHub') {
-                    echo 'Pushing Docker Image to DockerHub'
+                docker.withRegistry('https://index.docker.io/v1/', "DockerHub") {
+		    echo "Pushing DockerImage to DockerHub"
                     dockerImage.push()
                 }
                 
@@ -64,8 +64,8 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'Github', variable: 'GITHUB_PRIVATE_TOKEN')]) {
                     sh '''
-                       git config user.email ${GIT_USER_EMAIL}
-                       git config user.name ${GIT_USER_NAME}
+                       git config user.email "${GIT_USER_EMAIL}"
+                       git config user.name "${GIT_USER_NAME}"
                        BUILD_NUMBER = ${BUILD_NUMBER}
                        sed -i "s/replaceimagetag/${BUILD_NUMBER}/g" springboot-java-app/springboot-java-manifests/deployment.yaml
                        git add springboot-java-app/springboot-java-manifests/deployment.yaml
