@@ -59,7 +59,7 @@ pipeline {
                     sh '''
                        git config user.email "${GIT_USER_EMAIL}"
                        git config user.name "${GIT_USER_NAME}"
-                       BUILD_NUMBER = ${BUILD_NUMBER}
+                       BUILD_NUMBER=${BUILD_NUMBER}
                        sed -i "s/replaceimagetag/${BUILD_NUMBER}/g" javawebappmanifests/deployment.yaml
                        git add javawebappmanifests/deployment.yaml
                        git commit -m "Updated Deployment File with new image tag ${BUILD_NUMBER}"
