@@ -47,7 +47,7 @@ pipeline {
 
         stage('Update Kubernetes Deployment File') {
             environment {
-                GIT_REPO_NAME = "javawebappmanifests"
+                GIT_REPO_NAME = "javawebapp"
                 GIT_USER_NAME = "BhargavHarshithMudragiri"
                 GIT_USER_EMAIL = "mudragiribhargavharshith26@gmail.com"
             }
