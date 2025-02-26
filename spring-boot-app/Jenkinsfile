@@ -60,7 +60,7 @@ pipeline {
                        git config user.email "${GIT_USER_EMAIL}"
                        git config user.name "${GIT_USER_NAME}"
                        BUILD_NUMBER=${BUILD_NUMBER}
-                       sed -i "s/bhargavharshith/springboot-java-app:*/bhargavharshith/springboot-java-app:${BUILD_NUMBER}/g" spring-boot-manifests/deployment.yml
+                       sed -i "s/springboot-java-app:*/springboot-java-app:${BUILD_NUMBER}/g" spring-boot-manifests/deployment.yml
                        git add spring-boot-manifests/deployment.yml
                        git commit -m "Updated Deployment File with new image tag ${BUILD_NUMBER}"
                        git push https://${GITHUB_PRIVATE_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
